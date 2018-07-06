@@ -1,10 +1,13 @@
 const express = require('express');
 const app = express();
 const fs = require('fs');
-const template = require('./lib/template.js');
 const path = require('path');
 const qs = require('querystring');
 const sanitizeHtml = require('sanitize-html');
+const bodyParser = require('body-parser');
+const template = require('./lib/template.js');
+
+app.use(bodyParser.urlencoded({extended: false}));
 
 //route, routing
 //app.get('/', (req, res) => res.send('Hello World!'))
@@ -65,19 +68,13 @@ app.get('/create', function (request, response) {
 });
 
 app.post('/create_process', function (request, response) {
-    let body = '';
-    request.on('data', function(data){
-        body = body + data;
-    });
-    request.on('end', function(){
-        const post = qs.parse(body);
+        const post = request.body;
         const title = post.title;
         const description = post.description;
         fs.writeFile(`data/${title}`, description, 'utf8', function(err){
-            response.redirect('/page/${title}');
+            response.redirect('/?id=${title}');
         })
     });
-});
 
 app.get('/update/:pageId', function (request, response) {
     fs.readdir('./data', function(error, filelist){
@@ -106,12 +103,7 @@ app.get('/update/:pageId', function (request, response) {
 });
 
 app.post('/update_process', function (request, response) {
-    let body = '';
-    request.on('data', function(data){
-        body = body + data;
-    });
-    request.on('end', function(){
-        const post = qs.parse(body);
+        const post = request.body;
         const id = post.id;
         const title = post.title;
         const description = post.description;
@@ -121,22 +113,15 @@ app.post('/update_process', function (request, response) {
             })
         });
     });
-});
 
 app.post('/delete_process', function (request, response) {
-    let body = '';
-    request.on('data', function(data){
-        body = body + data;
-    });
-    request.on('end', function(){
-        const post = qs.parse(body);
+        const post = request.body;
         const id = post.id;
         const filteredId = path.parse(id).base;
         fs.unlink(`data/${filteredId}`, function(error){
             response.redirect('/');
         })
     });
-});
 
 app.listen(3000, function () {
     console.log("port 3000!")
