@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const compression = require('compression');
 const template = require('./lib/template.js');
 
+app.use(express.static('public'));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(compression());
 
@@ -29,31 +30,36 @@ app.get('/', function (request, response) {
     const description = 'Hello, Node.js';
     const list = template.list(request.list);
     const html = template.HTML(title, list,
-        `<h2>${title}</h2>${description}`,
+        `<h2>${title}</h2>${description}
+        <img src = "/images/ow.jpg" style="width : 600px; display : block;">`,
         `<a href="/create">create</a>`
     );
     response.send(html);
 });
 
-app.get('/page/:pageId', function(request, response){
+app.get('/page/:pageId', function(request, response, next){
     const filteredId = path.parse(request.params.pageId).base;
-    fs.readFile(`data/${filteredId}`, 'utf8', function(err, description){
-        const title = request.params.pageId;
-        const sanitizedTitle = sanitizeHtml(title);
-        const sanitizedDescription = sanitizeHtml(description, {
-            allowedTags:['h1']
-        });
-        const list = template.list(request.list);
-        const html = template.HTML(sanitizedTitle, list,
-            `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`,
-            ` <a href="/create">create</a>
-            <a href="/update/${sanitizedTitle}">update</a>
-            <form action="/delete_process" method="post">
-              <input type="hidden" name="id" value="${sanitizedTitle}">
-              <input type="submit" value="delete">
-            </form>`
-        );
-        response.send(html);
+    fs.readFile(`data/${filteredId}`, 'utf8', function(err, description) {
+        if(err) {
+            next(err);
+        } else {
+            const title = request.params.pageId;
+            const sanitizedTitle = sanitizeHtml(title);
+            const sanitizedDescription = sanitizeHtml(description, {
+                allowedTags: ['h1']
+            });
+            const list = template.list(request.list);
+            const html = template.HTML(sanitizedTitle, list,
+                `<h2>${sanitizedTitle}</h2>${sanitizedDescription}`,
+                ` <a href="/create">create</a>
+                <a href="/update/${sanitizedTitle}">update</a>
+                <form action="/delete_process" method="post">
+                  <input type="hidden" name="id" value="${sanitizedTitle}">
+                  <input type="submit" value="delete">
+                </form>`
+            );
+            response.send(html);
+        }
     });
 });
 
@@ -126,6 +132,15 @@ app.post('/delete_process', function (request, response) {
     fs.unlink(`data/${filteredId}`, function(error){
         response.redirect('/');
     })
+});
+
+app.use(function(request, response, next) {
+    response.status(404).send('sorry cant find that!');
+});
+
+app.use(function(err, request, response, next){
+    console.error(err.stack);
+    response.status(500).send('Something broke');
 });
 
 app.listen(3000, function () {
