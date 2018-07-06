@@ -5,9 +5,11 @@ const path = require('path');
 const qs = require('querystring');
 const sanitizeHtml = require('sanitize-html');
 const bodyParser = require('body-parser');
+const compression = require('compression');
 const template = require('./lib/template.js');
 
 app.use(bodyParser.urlencoded({extended: false}));
+app.use(compression());
 
 //route, routing
 //app.get('/', (req, res) => res.send('Hello World!'))
@@ -68,13 +70,13 @@ app.get('/create', function (request, response) {
 });
 
 app.post('/create_process', function (request, response) {
-        const post = request.body;
-        const title = post.title;
-        const description = post.description;
-        fs.writeFile(`data/${title}`, description, 'utf8', function(err){
-            response.redirect('/?id=${title}');
-        })
-    });
+    const post = request.body;
+    const title = post.title;
+    const description = post.description;
+    fs.writeFile(`data/${title}`, description, 'utf8', function(err){
+        response.redirect('/?id=${title}');
+    })
+});
 
 app.get('/update/:pageId', function (request, response) {
     fs.readdir('./data', function(error, filelist){
@@ -103,25 +105,25 @@ app.get('/update/:pageId', function (request, response) {
 });
 
 app.post('/update_process', function (request, response) {
-        const post = request.body;
-        const id = post.id;
-        const title = post.title;
-        const description = post.description;
-        fs.rename(`data/${id}`, `data/${title}`, function(error){
-            fs.writeFile(`data/${title}`, description, 'utf8', function(err){
-                response.redirect('/?id=${title}');
-            })
-        });
-    });
-
-app.post('/delete_process', function (request, response) {
-        const post = request.body;
-        const id = post.id;
-        const filteredId = path.parse(id).base;
-        fs.unlink(`data/${filteredId}`, function(error){
-            response.redirect('/');
+    const post = request.body;
+    const id = post.id;
+    const title = post.title;
+    const description = post.description;
+    fs.rename(`data/${id}`, `data/${title}`, function(error){
+        fs.writeFile(`data/${title}`, description, 'utf8', function(err){
+            response.redirect('/?id=${title}');
         })
     });
+});
+
+app.post('/delete_process', function (request, response) {
+    const post = request.body;
+    const id = post.id;
+    const filteredId = path.parse(id).base;
+    fs.unlink(`data/${filteredId}`, function(error){
+        response.redirect('/');
+    })
+});
 
 app.listen(3000, function () {
     console.log("port 3000!")
