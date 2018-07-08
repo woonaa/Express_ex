@@ -3,7 +3,7 @@ const app = express();
 const fs = require('fs');
 const bodyParser = require('body-parser');
 const compression = require('compression');
-
+const helmet = require('helmet');
 
 const topicRouter = require('./routes/topic');
 const indexRouter = require('./routes/index');
@@ -11,6 +11,7 @@ const indexRouter = require('./routes/index');
 app.use(express.static('public'));
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(compression());
+app.use(helmet());
 
 // app.use를 사용하면 되지만 post형식에서 필요없는데 미들웨어를 불러오는 것은 비효율
 // 그래서 get으로 변경 후, '*'모든 요청 명령어를 넣는다.
