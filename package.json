@@ -25,5 +25,8 @@
     "express": "^4.16.3",
     "pm2": "^3.0.0",
     "sanitize-html": "^1.18.2"
+  },
+  "devDependencies": {
+    "gulp-cssnano": "^2.1.3"
   }
 }
